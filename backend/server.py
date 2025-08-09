@@ -632,6 +632,88 @@ async def serial_websocket(websocket: WebSocket, port: str):
         manager.disconnect(websocket)
         logger.info(f"Serial monitor connection closed for port {port}")
 
+# Circuit Design Routes
+@api_router.get("/components")
+async def get_components():
+    """Get all Fritzing components"""
+    try:
+        import os
+        import xml.etree.ElementTree as ET
+        from pathlib import Path
+        
+        components = []
+        fritzing_parts_dir = ROOT_DIR / "fritzing-parts" / "core"
+        
+        if fritzing_parts_dir.exists():
+            for fzp_file in fritzing_parts_dir.glob("**/*.fzp"):
+                try:
+                    tree = ET.parse(fzp_file)
+                    root = tree.getroot()
+                    
+                    component = {
+                        "id": len(components) + 1,
+                        "fritzingId": fzp_file.stem,
+                        "title": root.get("title", fzp_file.stem),
+                        "description": root.get("description", ""),
+                        "category": "General",
+                        "tags": [],
+                        "iconUrl": f"/api/components/{len(components) + 1}/svg/icon",
+                        "breadboardUrl": f"/api/components/{len(components) + 1}/svg/breadboard",
+                        "connectors": [],
+                        "properties": {}
+                    }
+                    
+                    # Extract connectors
+                    connectors_elem = root.find(".//connectors")
+                    if connectors_elem is not None:
+                        for connector in connectors_elem.findall("connector"):
+                            conn_id = connector.get("id", "")
+                            conn_name = connector.get("name", conn_id)
+                            
+                            # Try to get breadboard position
+                            bb_elem = connector.find(".//p[@layer='breadboard']")
+                            x, y = 0, 0
+                            if bb_elem is not None:
+                                x = float(bb_elem.get("x", 0))
+                                y = float(bb_elem.get("y", 0))
+                            
+                            component["connectors"].append({
+                                "id": conn_id,
+                                "name": conn_name,
+                                "x": x,
+                                "y": y,
+                                "type": "pin"
+                            })
+                    
+                    components.append(component)
+                except Exception as e:
+                    logger.warning(f"Failed to parse {fzp_file}: {e}")
+                    continue
+        
+        return {"success": True, "components": components[:50]}  # Limit to first 50 components
+    except Exception as e:
+        logger.error(f"Error fetching components: {e}")
+        return {"success": False, "error": str(e)}
+
+@api_router.get("/components/{component_id}/svg/{svg_type}")
+async def get_component_svg(component_id: int, svg_type: str):
+    """Get component SVG for breadboard/schematic view"""
+    try:
+        from fastapi.responses import Response
+        import os
+        
+        # For now, return a simple placeholder SVG
+        placeholder_svg = f'''<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+    <rect x="4" y="4" width="56" height="56" fill="#666" stroke="#333" stroke-width="2" rx="4"/>
+    <text x="32" y="35" text-anchor="middle" fill="white" font-size="10">C{component_id}</text>
+</svg>'''
+        
+        return Response(content=placeholder_svg, media_type="image/svg+xml")
+    except Exception as e:
+        logger.error(f"Error fetching component SVG: {e}")
+        return {"success": False, "error": str(e)}
+
 # Include the router in the main app
 app.include_router(api_router)
 
