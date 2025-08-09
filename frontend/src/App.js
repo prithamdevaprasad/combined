@@ -1798,11 +1798,7 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route 
             path="/" 
-            element={
-              <ProtectedRoute>
-                <ArduinoCodeEditor />
-              </ProtectedRoute>
-            } 
+            element={<ArduinoCodeEditor />} 
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
