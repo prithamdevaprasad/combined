@@ -295,17 +295,50 @@ void loop() {
           lastModified: file.metadata?.lastModified || new Date().toISOString()
         }));
         
-        setWorkspaceTree(tree);
+        // Add sample .fzp files for circuit design
+        const sampleFzpFiles = [
+          { name: 'led.fzp', path: 'led.fzp', type: 'file', size: 1024 },
+          { name: 'resistor.fzp', path: 'resistor.fzp', type: 'file', size: 1024 },
+          { name: 'arduino_uno.fzp', path: 'arduino_uno.fzp', type: 'file', size: 2048 },
+          { name: 'breadboard.fzp', path: 'breadboard.fzp', type: 'file', size: 1536 }
+        ];
+        
+        setWorkspaceTree([...tree, ...sampleFzpFiles]);
       } else {
         // Fallback to backend API if user is not authenticated
         const response = await axios.get(`${API}/workspace`);
         if (response.data.success) {
-          setWorkspaceTree(response.data.tree);
+          // Add sample .fzp files for development
+          const sampleFzpFiles = [
+            { name: 'led.fzp', path: 'led.fzp', type: 'file', size: 1024 },
+            { name: 'resistor.fzp', path: 'resistor.fzp', type: 'file', size: 1024 },
+            { name: 'arduino_uno.fzp', path: 'arduino_uno.fzp', type: 'file', size: 2048 },
+            { name: 'breadboard.fzp', path: 'breadboard.fzp', type: 'file', size: 1536 }
+          ];
+          setWorkspaceTree([...response.data.tree, ...sampleFzpFiles]);
+        } else {
+          // If no backend data, just show sample files
+          const sampleFzpFiles = [
+            { name: 'led.fzp', path: 'led.fzp', type: 'file', size: 1024 },
+            { name: 'resistor.fzp', path: 'resistor.fzp', type: 'file', size: 1024 },
+            { name: 'arduino_uno.fzp', path: 'arduino_uno.fzp', type: 'file', size: 2048 },
+            { name: 'breadboard.fzp', path: 'breadboard.fzp', type: 'file', size: 1536 }
+          ];
+          setWorkspaceTree(sampleFzpFiles);
         }
       }
     } catch (error) {
       console.error('Error loading workspace:', error);
       setOutputText(prev => prev + '\nError loading workspace: ' + error.message);
+      
+      // Fallback to sample files on error
+      const sampleFzpFiles = [
+        { name: 'led.fzp', path: 'led.fzp', type: 'file', size: 1024 },
+        { name: 'resistor.fzp', path: 'resistor.fzp', type: 'file', size: 1024 },
+        { name: 'arduino_uno.fzp', path: 'arduino_uno.fzp', type: 'file', size: 2048 },
+        { name: 'breadboard.fzp', path: 'breadboard.fzp', type: 'file', size: 1536 }
+      ];
+      setWorkspaceTree(sampleFzpFiles);
     }
   };
   
