@@ -31,6 +31,7 @@ import Login from './components/Auth/Login';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import './components/Auth/Auth.css';
 import StorageService from './services/StorageService';
+import CircuitCanvas from './circuit/CircuitCanvas';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
