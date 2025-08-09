@@ -161,6 +161,8 @@ void loop() {
   const [activeTab, setActiveTab] = useState('main.ino');
   const [tabs, setTabs] = useState([{ name: 'main.ino', content: defaultCode, path: 'main.ino' }]);
   const [code, setCode] = useState(defaultCode);
+  const [isCircuitMode, setIsCircuitMode] = useState(false);
+  const [currentFzpFile, setCurrentFzpFile] = useState(null);
   const [rightPanelView, setRightPanelView] = useState('');
   const [serialData, setSerialData] = useState([]);
   const [serialOutput, setSerialOutput] = useState('');
