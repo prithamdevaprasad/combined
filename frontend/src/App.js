@@ -968,19 +968,28 @@ void loop() {
           className="flex items-center py-1 px-2 hover:bg-gray-700 cursor-pointer"
           onClick={async () => {
             if (item.type === 'file') {
-              // Open file in editor
-              const existingTab = tabs.find(t => t.path === item.path);
-              
-              if (existingTab) {
-                // If tab already exists, just switch to it
-                setActiveTab(item.name);
-                setCode(existingTab.content);
+              // Check if it's a .fzp file (circuit design)
+              if (item.name.endsWith('.fzp')) {
+                // Switch to circuit mode
+                setIsCircuitMode(true);
+                setCurrentFzpFile(item);
+                setOutputText(prev => prev + '\nSwitched to circuit design mode for: ' + item.name);
               } else {
-                // Load file content and create new tab
-                const fileContent = await loadFileContent(item.path);
-                setTabs([...tabs, { name: item.name, content: fileContent, path: item.path }]);
-                setActiveTab(item.name);
-                setCode(fileContent);
+                // Regular file - open in code editor
+                setIsCircuitMode(false);
+                const existingTab = tabs.find(t => t.path === item.path);
+                
+                if (existingTab) {
+                  // If tab already exists, just switch to it
+                  setActiveTab(item.name);
+                  setCode(existingTab.content);
+                } else {
+                  // Load file content and create new tab
+                  const fileContent = await loadFileContent(item.path);
+                  setTabs([...tabs, { name: item.name, content: fileContent, path: item.path }]);
+                  setActiveTab(item.name);
+                  setCode(fileContent);
+                }
               }
             } else {
               setIsOpen(!isOpen);
