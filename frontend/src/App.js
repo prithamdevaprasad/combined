@@ -1355,85 +1355,98 @@ void loop() {
           </div>
         </div>
 
-        {/* Center Panel - Code Editor */}
+        {/* Center Panel - Code Editor or Circuit Canvas */}
         <div className="flex-1 flex flex-col">
-          {/* Editor Tabs */}
-          <div className="bg-gray-800 border-b border-gray-600 px-4 py-2">
-            <div className="flex space-x-2">
-              {tabs.map((tab) => (
-                <div
-                    key={tab.name}
-                    onClick={() => {
-                      // Save current tab content before switching
-                      const updatedTabs = tabs.map(t => 
-                        t.name === activeTab ? { ...t, content: code } : t
-                      );
-                      setTabs(updatedTabs);
-                      
-                      // Set active tab and load its content
-                      setActiveTab(tab.name);
-                      const selectedTab = updatedTabs.find(t => t.name === tab.name);
-                      if (selectedTab) {
-                        setCode(selectedTab.content);
-                      }
-                    }}
-                    className={`px-3 py-1 rounded flex items-center cursor-pointer ${activeTab === tab.name ? 'bg-blue-600' : 'bg-gray-700 hover:bg-gray-600'}`}
-                  >
-                    <span>{tab.name}</span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const filteredTabs = tabs.filter(t => t.name !== tab.name);
-                        setTabs(filteredTabs);
-                        if (activeTab === tab.name && filteredTabs.length > 0) {
-                          const newActiveTab = filteredTabs[0];
-                          setActiveTab(newActiveTab.name);
-                          setCode(newActiveTab.content);
-                        }
-                      }}
-                      className="ml-2 hover:bg-red-600 rounded px-1"
-                    >
-                      ×
-                    </button>
-                  </div>
-              ))}
-            </div>
-          </div>
+          {!isCircuitMode ? (
+            <>
+              {/* Editor Tabs */}
+              <div className="bg-gray-800 border-b border-gray-600 px-4 py-2">
+                <div className="flex space-x-2">
+                  {tabs.map((tab) => (
+                    <div
+                        key={tab.name}
+                        onClick={() => {
+                          // Save current tab content before switching
+                          const updatedTabs = tabs.map(t => 
+                            t.name === activeTab ? { ...t, content: code } : t
+                          );
+                          setTabs(updatedTabs);
+                          
+                          // Set active tab and load its content
+                          setActiveTab(tab.name);
+                          const selectedTab = updatedTabs.find(t => t.name === tab.name);
+                          if (selectedTab) {
+                            setCode(selectedTab.content);
+                          }
+                        }}
+                        className={`px-3 py-1 rounded flex items-center cursor-pointer ${activeTab === tab.name ? 'bg-blue-600' : 'bg-gray-700 hover:bg-gray-600'}`}
+                      >
+                        <span>{tab.name}</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const filteredTabs = tabs.filter(t => t.name !== tab.name);
+                            setTabs(filteredTabs);
+                            if (activeTab === tab.name && filteredTabs.length > 0) {
+                              const newActiveTab = filteredTabs[0];
+                              setActiveTab(newActiveTab.name);
+                              setCode(newActiveTab.content);
+                            }
+                          }}
+                          className="ml-2 hover:bg-red-600 rounded px-1"
+                        >
+                          ×
+                        </button>
+                      </div>
+                  ))}
+                </div>
+              </div>
 
-          {/* Monaco Editor */}
-          <div className="flex-1">
-            <Editor
-              onMount={(editor) => {
-                console.log('Editor mounted');
-                editorRef.current = editor;
-              }}
-              height="100%"
-              defaultLanguage="cpp"
-              theme={darkMode ? "vs-dark" : "vs-light"}
-              value={code}
-              onChange={(newValue) => {
-                console.log('Editor content changed, new length:', newValue?.length || 0);
-                setCode(newValue || '');
-              }}
-              options={{
-                minimap: { enabled: false },
-                scrollBeyondLastLine: false,
-                fontSize: 14,
-                lineNumbers: 'on',
-                wordWrap: 'on',
-                automaticLayout: true,
+              {/* Monaco Editor */}
+              <div className="flex-1">
+                <Editor
+                  onMount={(editor) => {
+                    console.log('Editor mounted');
+                    editorRef.current = editor;
+                  }}
+                  height="100%"
+                  defaultLanguage="cpp"
+                  theme={darkMode ? "vs-dark" : "vs-light"}
+                  value={code}
+                  onChange={(newValue) => {
+                    console.log('Editor content changed, new length:', newValue?.length || 0);
+                    setCode(newValue || '');
+                  }}
+                  options={{
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    fontSize: 14,
+                    lineNumbers: 'on',
+                    wordWrap: 'on',
+                    automaticLayout: true,
+                  }}
+                />
+              </div>
+
+              {/* Output Panel */}
+              <div className="h-40 bg-gray-800 border-t border-gray-600 p-4">
+                <h3 className="font-semibold mb-2">Output</h3>
+                <div className="bg-gray-900 p-2 rounded h-32 overflow-y-auto text-sm font-mono">
+                  {compileOutput && <div className="text-green-400">{compileOutput}</div>}
+                  {uploadOutput && <div className="text-blue-400">{uploadOutput}</div>}
+                </div>
+              </div>
+            </>
+          ) : (
+            /* Circuit Canvas */
+            <CircuitCanvas 
+              onBack={() => {
+                setIsCircuitMode(false);
+                setCurrentFzpFile(null);
+                setOutputText(prev => prev + '\nSwitched back to code editor mode');
               }}
             />
-          </div>
-
-          {/* Output Panel */}
-          <div className="h-40 bg-gray-800 border-t border-gray-600 p-4">
-            <h3 className="font-semibold mb-2">Output</h3>
-            <div className="bg-gray-900 p-2 rounded h-32 overflow-y-auto text-sm font-mono">
-              {compileOutput && <div className="text-green-400">{compileOutput}</div>}
-              {uploadOutput && <div className="text-blue-400">{uploadOutput}</div>}
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Right Panel - Serial Monitor/Plotter */}
